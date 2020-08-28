@@ -7,4 +7,6 @@
   <license>Apache 2.0</license>
   <author email="ghottiger@anybotics.com">Gabriel Hottiger</author>
   <buildtool_depend>catkin</buildtool_depend>
+  <test_depend>gtest</test_depend>
+<!--   <test_depend>cmake_code_coverage</test_depend> -->
 </package>

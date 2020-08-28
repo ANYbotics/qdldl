@@ -225,3 +225,40 @@ if (UNITTESTS)
     enable_testing()
     add_test(NAME tester COMMAND $<TARGET_FILE:qdldl_tester>)
 endif()
+
+## GTest.
+if(CATKIN_ENABLE_TESTING)
+	## Find catkin dependencies, including test dependencies.
+	find_package(catkin REQUIRED
+		COMPONENTS
+		${CATKIN_PACKAGE_DEPENDENCIES}
+	)
+
+	catkin_add_gtest(test_${PROJECT_NAME}
+		test/TestQdldl.cpp
+	)
+endif()
+
+## Link GTest.
+if(TARGET test_${PROJECT_NAME})
+	target_link_libraries(test_${PROJECT_NAME}
+		gtest_main
+		${PROJECT_NAME}
+	)
+
+	target_include_directories(test_${PROJECT_NAME} PRIVATE
+		include
+	)
+
+	target_include_directories(test_${PROJECT_NAME} SYSTEM PUBLIC
+		${catkin_INCLUDE_DIRS}
+	)
+
+	# Generate test coverage report
+	find_package(cmake_code_coverage QUIET)
+	if(cmake_code_coverage_FOUND)
+		add_gtest_coverage(
+			TEST_BUILD_TARGETS test_${PROJECT_NAME}
+		)
+	endif(cmake_code_coverage_FOUND)
+endif()

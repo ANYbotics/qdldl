@@ -71,19 +71,23 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/configure/qdldl_types.h.in
 option(BUILD_CATKIN_PACKAGE "Build catkin package" ON)
 
 if(BUILD_CATKIN_PACKAGE)
-# Find Catkin
-find_package(catkin REQUIRED COMPONENTS
-)
 
-# Declare this project as a catkin package
-catkin_package(
-  INCLUDE_DIRS include
-  LIBRARIES ${PROJECT_NAME} qdldlobject
-  CATKIN_DEPENDS
-)
+  # Find Catkin
+  find_package(catkin REQUIRED COMPONENTS)
+
+  # Declare this project as a catkin package
+  catkin_package(
+    INCLUDE_DIRS include
+    LIBRARIES ${PROJECT_NAME} qdldlobject
+    CATKIN_DEPENDS
+  )
+
+  set(CMAKE_INSTALL_BINDIR "${CATKIN_PACKAGE_BIN_DESTINATION}")
+  set(CMAKE_INSTALL_LIBDIR "${CATKIN_PACKAGE_LIB_DESTINATION}")
+  set(CMAKE_INSTALL_INCLUDEDIR "${CATKIN_PACKAGE_INCLUDE_DESTINATION}")
+else()
+  set(CMAKE_INSTALL_INCLUDEDIR "${CMAKE_INSTALL_INCLUDEDIR}/qdldl")
 endif(BUILD_CATKIN_PACKAGE)
-
-
 
 # Set sources
 # ----------------------------------------------
@@ -124,7 +128,7 @@ set_target_properties(qdldlstatic PROPERTIES OUTPUT_NAME qdldl)
 # Declare include directories for the cmake exported target
 target_include_directories(qdldlstatic
                            PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
-                                  "$<INSTALL_INTERFACE:$<INSTALL_PREFIX>/${CMAKE_INSTALL_INCLUDEDIR}/qdldl>")
+                                  "$<INSTALL_INTERFACE:$<INSTALL_PREFIX>/${CMAKE_INSTALL_INCLUDEDIR}>")
 
 # Install Static Library
 # ----------------------------------------------
@@ -139,7 +143,7 @@ install(TARGETS qdldlstatic
 
 # Install Headers
 # ----------------------------------------------
-install(FILES ${qdldl_headers} DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/qdldl")
+install(FILES ${qdldl_headers} DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
 
 
 # Install Shared Library
@@ -150,7 +154,7 @@ add_library (qdldl SHARED ${qdldl_src} ${qdldl_headers})
 # Declare include directories for the cmake exported target
 target_include_directories(qdldl
 	PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
-	"$<INSTALL_INTERFACE:$<INSTALL_PREFIX>/${CMAKE_INSTALL_INCLUDEDIR}/qdldl>")
+	"$<INSTALL_INTERFACE:$<INSTALL_PREFIX>/${CMAKE_INSTALL_INCLUDEDIR}>")
 
 # Install qdldl shared library
 install(TARGETS qdldl
@@ -209,7 +213,7 @@ endif()
 # Add testing
 # ----------------------------------------------
 # Add custom command to generate tests
-if (UNITTESTS)
+if (NOT BUILD_CATKIN_PACKAGE AND UNITTESTS)
 
     # Add test_headers and codegen_test_headers
     add_subdirectory(tests)
@@ -226,39 +230,27 @@ if (UNITTESTS)
     add_test(NAME tester COMMAND $<TARGET_FILE:qdldl_tester>)
 endif()
 
-## GTest.
-if(CATKIN_ENABLE_TESTING)
-	## Find catkin dependencies, including test dependencies.
-	find_package(catkin REQUIRED
-		COMPONENTS
-		${CATKIN_PACKAGE_DEPENDENCIES}
-	)
-
-	catkin_add_gtest(test_${PROJECT_NAME}
-		test/TestQdldl.cpp
-	)
-endif()
-
-## Link GTest.
-if(TARGET test_${PROJECT_NAME})
-	target_link_libraries(test_${PROJECT_NAME}
-		gtest_main
-		${PROJECT_NAME}
-	)
-
-	target_include_directories(test_${PROJECT_NAME} PRIVATE
-		include
-	)
-
-	target_include_directories(test_${PROJECT_NAME} SYSTEM PUBLIC
-		${catkin_INCLUDE_DIRS}
-	)
-
-	# Generate test coverage report
-	find_package(cmake_code_coverage QUIET)
-	if(cmake_code_coverage_FOUND)
-		add_gtest_coverage(
-			TEST_BUILD_TARGETS test_${PROJECT_NAME}
-		)
-	endif(cmake_code_coverage_FOUND)
+if (BUILD_CATKIN_PACKAGE AND CATKIN_ENABLE_TESTING)
+  # GTest need cpp
+  set_property(SOURCE ${PROJECT_SOURCE_DIR}/tests/qdldl_tester.c PROPERTY LANGUAGE CXX)
+  catkin_add_gtest(test_${PROJECT_NAME}
+    ${PROJECT_SOURCE_DIR}/tests/qdldl_tester.c
+  )
+  if(TARGET test_${PROJECT_NAME})
+    target_compile_options(test_${PROJECT_NAME} PRIVATE -DUSE_GTEST=ON --std=c++11)
+    target_include_directories(test_${PROJECT_NAME} PRIVATE
+      include
+      ${catkin_INCLUDE_DIRS}
+      ${PROJECT_SOURCE_DIR}/tests
+    )
+    target_link_libraries( test_${PROJECT_NAME}
+      qdldlstatic
+      ${catkin_LIBRARIES}
+      gtest_main
+    )
+    find_package(cmake_code_coverage QUIET)
+    if(cmake_code_coverage_FOUND)
+      add_gtest_coverage()
+    endif(cmake_code_coverage_FOUND)
+  endif()
 endif()

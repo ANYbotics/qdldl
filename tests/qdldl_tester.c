@@ -8,6 +8,10 @@
 #include "minunit.h"
 #include "qdldl/qdldl.h"
 
+#ifdef USE_GTEST
+#include <gtest/gtest.h>
+#endif
+
 //utility functions for solves
 QDLDL_float vec_diff_norm(QDLDL_float* x, QDLDL_float* y, QDLDL_int len);
 int ldl_factor_solve(QDLDL_int An, QDLDL_int* Ap,QDLDL_int* Ai,
@@ -158,9 +162,14 @@ int ldl_factor_solve(QDLDL_int An,
 
 }
 
-
-
-
+#ifdef USE_GTEST
+// Tests for pure Catkin Build
+TEST(QDLDL, runAllTests) {  // NOLINT
+  char *result = all_tests();
+  ASSERT_EQ(result, nullptr);
+}
+#else
+// Tests for pure CMake Build
 int main(void) {
   char *result = all_tests();
 
@@ -174,3 +183,4 @@ int main(void) {
 
   return result != 0;
 }
+#endif

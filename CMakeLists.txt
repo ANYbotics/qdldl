@@ -110,12 +110,20 @@ target_include_directories(qdldlobject PRIVATE ${PROJECT_SOURCE_DIR}/include)
 
 include(GNUInstallDirs)
 
-# Install qdldl object library
-install(TARGETS qdldlobject
+if(BUILD_CATKIN_PACKAGE)
+	# Install qdldl object library
+	install(TARGETS qdldlobject
+		EXPORT  ${PROJECT_NAME}
+        LIBRARY       DESTINATION "${CATKIN_PACKAGE_LIB_DESTINATION}"
+        ARCHIVE       DESTINATION "${CATKIN_PACKAGE_LIB_DESTINATION}"
+        RUNTIME       DESTINATION "${CATKIN_PACKAGE_BIN_DESTINATION}")
+else()
+	install(TARGETS qdldlobject
 		EXPORT  ${PROJECT_NAME}
 		LIBRARY       DESTINATION "${CMAKE_INSTALL_LIBDIR}"
 		ARCHIVE       DESTINATION "${CMAKE_INSTALL_LIBDIR}"
 		RUNTIME       DESTINATION "${CMAKE_INSTALL_BINDIR}")
+endif()
 
 # Create Static Library
 # ----------------------------------------------
@@ -133,13 +141,19 @@ target_include_directories(qdldlstatic
 # Install Static Library
 # ----------------------------------------------
 
-
-install(TARGETS qdldlstatic
+if(BUILD_CATKIN_PACKAGE)
+    install(TARGETS qdldlstatic
+        EXPORT  ${PROJECT_NAME}
+        LIBRARY       DESTINATION "${CATKIN_PACKAGE_LIB_DESTINATION}"
+        ARCHIVE       DESTINATION "${CATKIN_PACKAGE_LIB_DESTINATION}"
+        RUNTIME       DESTINATION "${CATKIN_PACKAGE_BIN_DESTINATION}")
+else()
+  install(TARGETS qdldlstatic
         EXPORT  ${PROJECT_NAME}
         ARCHIVE       DESTINATION "${CMAKE_INSTALL_LIBDIR}"
         LIBRARY       DESTINATION "${CMAKE_INSTALL_LIBDIR}"
         RUNTIME       DESTINATION "${CMAKE_INSTALL_BINDIR}")
-
+endif()
 
 # Install Headers
 # ----------------------------------------------
@@ -156,12 +170,22 @@ target_include_directories(qdldl
 	PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
 	"$<INSTALL_INTERFACE:$<INSTALL_PREFIX>/${CMAKE_INSTALL_INCLUDEDIR}>")
 
-# Install qdldl shared library
-install(TARGETS qdldl
-	EXPORT  ${PROJECT_NAME}
-	LIBRARY       DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-	ARCHIVE       DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-	RUNTIME       DESTINATION "${CMAKE_INSTALL_BINDIR}")
+if(BUILD_CATKIN_PACKAGE)
+	# Install qdldl object library in catkin workspace
+	install(TARGETS qdldl
+		EXPORT  ${PROJECT_NAME}
+		LIBRARY       DESTINATION "${CATKIN_PACKAGE_LIB_DESTINATION}"
+		ARCHIVE       DESTINATION "${CATKIN_PACKAGE_LIB_DESTINATION}"
+		RUNTIME       DESTINATION "${CATKIN_PACKAGE_BIN_DESTINATION}")
+else()
+	# Install qdldl shared library
+	install(TARGETS qdldl
+		EXPORT  ${PROJECT_NAME}
+		LIBRARY       DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+		ARCHIVE       DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+		RUNTIME       DESTINATION "${CMAKE_INSTALL_BINDIR}")
+endif(BUILD_CATKIN_PACKAGE)
+
 
 # Create demo executable (linked to static library)
 add_executable (qdldl_example ${PROJECT_SOURCE_DIR}/examples/c/example.c)

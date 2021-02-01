@@ -4,6 +4,8 @@ cmake_minimum_required (VERSION 3.2)
 # Project name
 project (qdldl)
 
+add_compile_options(-Wall -Wextra)
+
 # Set the output folder where your program will be created
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/out)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/out)
